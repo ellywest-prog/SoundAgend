@@ -1,5 +1,6 @@
 // ── State ──────────────────────────────────
 let currentPlatform = 'youtube';
+let currentCountry = 'TR';
 let currentPlayingCard = null;
 let isPlaying = false;
 
@@ -42,8 +43,8 @@ async function fetchTracks() {
 
     try {
         const [topRes, newRes] = await Promise.all([
-            fetch(`/api/${currentPlatform}/top`),
-            fetch(`/api/${currentPlatform}/new`)
+            fetch(`/api/${currentPlatform}/top?country=${currentCountry}`),
+            fetch(`/api/${currentPlatform}/new?country=${currentCountry}`)
         ]);
 
         const topTracks = await topRes.json();
@@ -239,4 +240,17 @@ document.getElementById('player-progress-wrap').addEventListener('click', (e) =>
 });
 
 // ── Initialize ────────────────────────────
-window.onload = fetchTracks;
+window.onload = () => {
+    // Add country selector event
+    const countrySelect = document.getElementById('country-select');
+    if (countrySelect) {
+        countrySelect.addEventListener('change', (e) => {
+            currentCountry = e.target.value;
+            const countryName = e.target.options[e.target.selectedIndex].text.split(' ')[1] || e.target.options[e.target.selectedIndex].text;
+            document.getElementById('main-subtitle').textContent = `Tüm Platformlardan ${countryName} Müzik Gündemi`;
+            fetchTracks();
+        });
+    }
+    
+    fetchTracks();
+};
