@@ -86,6 +86,7 @@ async def yt_top_20(country: str = "TR"):
                 'artist': artists,
                 'thumbnail': thumb,
                 'videoId': t.get('videoId', ''),
+                'duration': t.get('duration_seconds', 180),
                 'platform': 'youtube',
             })
         return result
@@ -98,7 +99,8 @@ async def yt_new_releases(country: str = "TR"):
     try:
         c_name = COUNTRY_NAMES.get(country.upper(), "Türkiye")
         yt_local = YTMusic(language="tr", location=country.upper())
-        new_releases = yt_local.search(f"yeni çıkanlar 2026 {c_name}", filter="songs")
+        query = f"yeni çıkanlar 2026 {c_name}" if country.upper() == "TR" else f"new releases 2026 {c_name}"
+        new_releases = yt_local.search(query, filter="songs")
         result = []
         for t in new_releases[:20]:
             thumb = ''
@@ -112,6 +114,7 @@ async def yt_new_releases(country: str = "TR"):
                 'artist': artists,
                 'thumbnail': thumb,
                 'videoId': t.get('videoId', ''),
+                'duration': t.get('duration_seconds', 180),
                 'platform': 'youtube',
             })
         return result
@@ -142,6 +145,7 @@ async def spotify_top_20(country: str = "TR"):
                 'artist': artists,
                 'thumbnail': thumb,
                 'videoId': t.get('videoId', ''),
+                'duration': t.get('duration_seconds', 180),
                 'platform': 'spotify',
             })
         return out
@@ -154,7 +158,8 @@ async def spotify_new(country: str = "TR"):
     try:
         c_name = COUNTRY_NAMES.get(country.upper(), "Türkiye")
         yt_local = YTMusic(language="tr", location=country.upper())
-        results = yt_local.search(f"Spotify yeni çıkanlar 2026 {c_name}", filter="songs")
+        query = f"Spotify yeni çıkanlar 2026 {c_name}" if country.upper() == "TR" else f"Spotify new releases 2026 {c_name}"
+        results = yt_local.search(query, filter="songs")
         out = []
         for t in results[:20]:
             thumb = ''
@@ -168,6 +173,7 @@ async def spotify_new(country: str = "TR"):
                 'artist': artists,
                 'thumbnail': thumb,
                 'videoId': t.get('videoId', ''),
+                'duration': t.get('duration_seconds', 180),
                 'platform': 'spotify',
             })
         return out
@@ -195,6 +201,7 @@ async def deezer_top_20(country: str = "TR"):
                 'thumbnail': t.get('album', {}).get('cover_medium', ''),
                 'previewUrl': t.get('preview', ''),
                 'externalUrl': t.get('link', ''),
+                'duration': t.get('duration', 180),
                 'platform': 'deezer',
             })
         return result
@@ -207,7 +214,8 @@ async def deezer_new(country: str = "TR"):
     try:
         c_name = COUNTRY_NAMES.get(country.upper(), "Türkiye")
         # Search Deezer for new songs in the target country
-        resp = requests.get(f"https://api.deezer.com/search?q=yeni pop {c_name}&order=RATING_DESC&limit=20", timeout=10)
+        query = f"yeni pop {c_name}" if country.upper() == "TR" else f"new releases {c_name}"
+        resp = requests.get(f"https://api.deezer.com/search?q={query}&order=RATING_DESC&limit=20", timeout=10)
         data = resp.json().get('data', [])
         result = []
         for t in data:
@@ -217,6 +225,7 @@ async def deezer_new(country: str = "TR"):
                 'thumbnail': t.get('album', {}).get('cover_medium', ''),
                 'previewUrl': t.get('preview', ''),
                 'externalUrl': t.get('link', ''),
+                'duration': t.get('duration', 180),
                 'platform': 'deezer',
             })
         return result
@@ -227,15 +236,15 @@ async def deezer_new(country: str = "TR"):
 # ─────────────────── Apple Music ───────────────────
 
 def _find_yt_video_id(title, artist):
-    """Search YouTube Music for a song and return its videoId for inline playback."""
+    """Search YouTube Music for a song and return its videoId and duration_seconds for inline playback."""
     try:
         query = f"{title} {artist}"
         results = yt.search(query, filter="songs", limit=1)
         if results:
-            return results[0].get('videoId', '')
+            return results[0].get('videoId', ''), results[0].get('duration_seconds', 180)
     except Exception:
         pass
-    return ''
+    return '', 180
 
 @app.get("/api/apple/top")
 async def apple_top_20(country: str = "TR"):
@@ -247,13 +256,14 @@ async def apple_top_20(country: str = "TR"):
         for t in data:
             title = t.get('name', '')
             artist = t.get('artistName', '')
-            video_id = _find_yt_video_id(title, artist)
+            video_id, duration = _find_yt_video_id(title, artist)
             result.append({
                 'title': title,
                 'artist': artist,
                 'thumbnail': t.get('artworkUrl100', '').replace('100x100', '300x300'),
                 'videoId': video_id,
                 'externalUrl': t.get('url', ''),
+                'duration': duration,
                 'platform': 'apple',
             })
         return result
@@ -285,6 +295,7 @@ async def apple_new(country: str = "TR"):
                 'artist': artists,
                 'thumbnail': thumb,
                 'videoId': t.get('videoId', ''),
+                'duration': t.get('duration_seconds', 180),
                 'platform': 'apple',
             })
         return out
