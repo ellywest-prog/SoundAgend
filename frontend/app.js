@@ -1,6 +1,7 @@
 // ── State ──────────────────────────────────
 let currentPlatform = 'youtube';
 let currentCountry = 'TR';
+let currentLimit = 20;
 let currentPlayingCard = null;
 let isPlaying = false;
 let ytProgressInterval = null;
@@ -13,7 +14,6 @@ const ytIframe = document.getElementById('yt-player');
 const platformColors = {
     youtube: '#ff0000',
     spotify: '#1db954',
-    deezer: '#a238ff',
     apple: '#fc3c44',
 };
 
@@ -45,9 +45,11 @@ async function fetchTracks() {
     newList.innerHTML = '<div class="loading-shimmer">Yükleniyor...</div>';
 
     try {
+        document.getElementById('top-title').innerHTML = `🔥 Top ${currentLimit}`;
+
         const [topRes, newRes] = await Promise.all([
-            fetch(`/api/${currentPlatform}/top?country=${currentCountry}`),
-            fetch(`/api/${currentPlatform}/new?country=${currentCountry}`)
+            fetch(`/api/${currentPlatform}/top?country=${currentCountry}&limit=${currentLimit}`),
+            fetch(`/api/${currentPlatform}/new?country=${currentCountry}&limit=${currentLimit}`)
         ]);
 
         const topTracks = await topRes.json();
@@ -93,13 +95,13 @@ function renderTracks(elementId, tracks) {
                 <div class="track-title">${track.title || 'Bilinmeyen'}</div>
                 <div class="track-artist">${track.artist || ''}</div>
             </div>
-            <button class="copy-btn" title="Şarkı adını kopyala" data-copy="${trackFullName.replace(/"/g, '&quot;')}">
+            <button class="copy-btn copy-text-btn" title="Şarkı adını kopyala" data-copy="${trackFullName.replace(/"/g, '&quot;')}">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><rect x="9" y="9" width="13" height="13" rx="2" ry="2" stroke="currentColor" stroke-width="2" fill="none"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke="currentColor" stroke-width="2" fill="none"/></svg>
             </button>
         `;
 
         // Copy button handler — stop propagation so it doesn't trigger playback
-        const copyBtn = card.querySelector('.copy-btn');
+        const copyBtn = card.querySelector('.copy-text-btn');
         copyBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             const text = copyBtn.dataset.copy;
@@ -143,7 +145,7 @@ function playTrack(track, card) {
 
     // Determine playback method — prioritize previewUrl > videoId > externalUrl
     if (track.previewUrl) {
-        // Deezer preview (30s MP3)
+        // Audio preview
         playAudio(track.previewUrl);
     } else if (track.videoId) {
         // YouTube embed (works for YouTube Music, Spotify proxy, and Apple Music)
@@ -209,7 +211,7 @@ function formatTime(seconds) {
 
 // ── Player Controls ───────────────────────
 document.getElementById('player-play-btn').addEventListener('click', () => {
-    // Check if playing HTML5 audio (Deezer)
+    // Check if playing HTML5 audio
     if (audioPlayer.src && audioPlayer.src !== window.location.href) {
         if (audioPlayer.paused) {
             audioPlayer.play();
@@ -282,5 +284,14 @@ window.onload = () => {
         });
     }
     
+    // Add limit selector event
+    const limitSelect = document.getElementById('limit-select');
+    if (limitSelect) {
+        limitSelect.addEventListener('change', (e) => {
+            currentLimit = parseInt(e.target.value);
+            fetchTracks();
+        });
+    }
+
     fetchTracks();
 };
