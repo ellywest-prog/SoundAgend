@@ -192,6 +192,7 @@ function formatTime(seconds) {
 
 // ── Player Controls ───────────────────────
 document.getElementById('player-play-btn').addEventListener('click', () => {
+    // Check if playing HTML5 audio (Deezer)
     if (audioPlayer.src && audioPlayer.src !== window.location.href) {
         if (audioPlayer.paused) {
             audioPlayer.play();
@@ -199,6 +200,19 @@ document.getElementById('player-play-btn').addEventListener('click', () => {
         } else {
             audioPlayer.pause();
             isPlaying = false;
+        }
+        updatePlayPauseIcon();
+    } 
+    // Otherwise, assume YouTube Iframe
+    else if (ytIframe.src && ytIframe.src !== window.location.href) {
+        if (isPlaying) {
+            // Send pause command to YT Iframe
+            ytIframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+            isPlaying = false;
+        } else {
+            // Send play command to YT Iframe
+            ytIframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+            isPlaying = true;
         }
         updatePlayPauseIcon();
     }
