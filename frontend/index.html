@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>SoundAgend - Music Agent</title>
+    
+    <!-- PWA & Mobile Meta Tags -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0a0a0c">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="SoundAgend">
+    <link rel="apple-touch-icon" href="/icon.png">
+    <meta name="description" content="Tüm müzik platformlarından Türkiye'nin en popüler ve en yeni parçalarını keşfedin.">
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="background-glow"></div>
+    <div class="background-glow glow-2"></div>
+
+    <main class="container">
+        <header>
+            <div class="logo-area">
+                <span class="logo-icon">🎵</span>
+                <h1>SoundAgend <span class="badge">AGENT</span></h1>
+            </div>
+            <p class="subtitle">Tüm Platformlardan Türkiye Müzik Gündemi</p>
+        </header>
+
+        <!-- Platform Selector -->
+        <nav class="platform-nav" id="platform-nav">
+            <button class="platform-btn active" data-platform="youtube" id="btn-youtube">
+                <svg class="platform-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                <span>YouTube Music</span>
+            </button>
+            <button class="platform-btn" data-platform="spotify" id="btn-spotify">
+                <svg class="platform-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
+                <span>Spotify</span>
+            </button>
+            <button class="platform-btn" data-platform="deezer" id="btn-deezer">
+                <svg class="platform-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M18.81 4.16v3.03H24V4.16h-5.19zM6.27 8.38v3.027h5.189V8.38H6.27zm6.27 0v3.027h5.19V8.38h-5.19zm6.27 0v3.027H24V8.38h-5.19zM6.27 12.594v3.027h5.189v-3.027H6.27zm6.27 0v3.027h5.19v-3.027h-5.19zm6.27 0v3.027H24v-3.027h-5.19zM0 16.81v3.029h5.19v-3.03H0zm6.27 0v3.029h5.189v-3.03H6.27zm6.27 0v3.029h5.19v-3.03h-5.19zm6.27 0v3.029H24v-3.03h-5.19z"/></svg>
+                <span>Deezer</span>
+            </button>
+            <button class="platform-btn" data-platform="apple" id="btn-apple">
+                <svg class="platform-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M23.994 6.124a9.23 9.23 0 0 0-.24-2.19c-.317-1.31-1.062-2.31-2.18-3.043A5.022 5.022 0 0 0 19.7.28C18.858.074 17.98-.01 17.107 0H6.893c-.508.006-.998.05-1.5.135C4.474.326 3.66.672 2.98 1.27 2.242 1.932 1.77 2.737 1.473 3.67A10.662 10.662 0 0 0 1.12 6.637V17.33c.002.3.025.6.06.897.117 1.05.426 2.003.994 2.86a4.94 4.94 0 0 0 2.28 1.885c.77.31 1.575.46 2.412.504.3.012.6.037.9.037h10.5c.6-.006 1.18-.065 1.758-.186 1.315-.345 2.337-1.09 3.057-2.202a5.95 5.95 0 0 0 .79-2.485c.05-.39.072-.78.076-1.17V6.124zm-7.865 10.66c-.296.32-.668.484-1.082.5-.29.004-.555-.074-.814-.2-.252-.123-.5-.252-.75-.368-.41-.174-.826-.177-1.236.01-.236.11-.465.237-.7.353-.41.2-.834.242-1.27.082a2.1 2.1 0 0 1-.817-.586 13.97 13.97 0 0 1-1.95-2.904 8.52 8.52 0 0 1-.926-3.016c-.087-.87.028-1.694.494-2.448a2.857 2.857 0 0 1 1.56-1.238c.72-.244 1.39-.147 2.027.24.194.118.37.262.563.375.542.314 1.084.3 1.627-.01.196-.112.38-.244.58-.35.593-.317 1.222-.383 1.87-.226.93.23 1.593.79 2.012 1.65.03.062.026.095-.024.13a3.177 3.177 0 0 0-1.57 2.46 3.24 3.24 0 0 0 1.066 2.8c.18.17.38.31.584.44.048.03.07.06.034.12-.25.466-.527.912-.85 1.332l.041.004zm-2.84-14.02c.068.703-.205 1.346-.612 1.93-.502.72-1.204 1.14-2.04 1.26-.03-.06-.04-.12-.044-.18a3.456 3.456 0 0 1 .617-2.063c.525-.74 1.193-1.21 2.04-1.39.01-.001.023-.01.04 0 .022.15.022.3 0 .443z"/></svg>
+                <span>Apple Music</span>
+            </button>
+        </nav>
+
+        <!-- Inline Player -->
+        <div class="player-bar" id="player-bar">
+            <div class="player-inner">
+                <img class="player-thumb" id="player-thumb" src="" alt="">
+                <div class="player-info">
+                    <div class="player-title" id="player-title">Bir parça seçin...</div>
+                    <div class="player-artist" id="player-artist"></div>
+                </div>
+                <div class="player-controls">
+                    <button class="player-play-btn" id="player-play-btn" title="Oynat / Durdur">
+                        <svg id="play-icon" viewBox="0 0 24 24" fill="currentColor" width="28" height="28"><polygon points="5,3 19,12 5,21"/></svg>
+                        <svg id="pause-icon" viewBox="0 0 24 24" fill="currentColor" width="28" height="28" style="display:none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                    </button>
+                </div>
+                <div class="player-progress-wrap" id="player-progress-wrap">
+                    <div class="player-progress" id="player-progress"></div>
+                </div>
+                <div class="player-time" id="player-time">0:00</div>
+                <button class="player-close-btn" id="player-close-btn" title="Kapat">✕</button>
+            </div>
+            <!-- Hidden YouTube iframe for playback -->
+            <iframe id="yt-player" style="display:none" allow="autoplay" width="0" height="0"></iframe>
+            <audio id="audio-player" style="display:none"></audio>
+        </div>
+
+        <!-- Dashboard -->
+        <section class="dashboard">
+            <div class="column" id="col-top">
+                <div class="section-header">
+                    <h2 id="top-title">🔥 Top 10</h2>
+                    <span class="status-indicator" id="top-status">Canlı Veri</span>
+                </div>
+                <div class="track-list" id="top-tracks-list">
+                    <div class="loading-shimmer">Yükleniyor...</div>
+                </div>
+            </div>
+
+            <div class="column" id="col-new">
+                <div class="section-header">
+                    <h2 id="new-title">🆕 Son Eklenenler</h2>
+                    <span class="status-indicator" id="new-status">Yeni</span>
+                </div>
+                <div class="track-list" id="new-tracks-list">
+                    <div class="loading-shimmer">Yükleniyor...</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then(reg => console.log('ServiceWorker registered'))
+            .catch(err => console.log('ServiceWorker error: ', err));
+        });
+      }
+    </script>
+    <script src="/static/app.js"></script>
+</body>
+</html>
