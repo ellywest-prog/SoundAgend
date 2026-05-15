@@ -28,7 +28,25 @@
                 <span class="logo-icon">🎵</span>
                 <h1>SoundAgend <span class="badge">AGENT</span></h1>
             </div>
-            <p class="subtitle">Tüm Platformlardan Türkiye Müzik Gündemi</p>
+            
+            <div class="country-selector-wrap">
+                <select id="country-select" class="country-select">
+                    <option value="TR">🇹🇷 Türkiye</option>
+                    <option value="US">🇺🇸 Amerika</option>
+                    <option value="GB">🇬🇧 İngiltere</option>
+                    <option value="DE">🇩🇪 Almanya</option>
+                    <option value="FR">🇫🇷 Fransa</option>
+                    <option value="IT">🇮🇹 İtalya</option>
+                    <option value="ES">🇪🇸 İspanya</option>
+                    <option value="BR">🇧🇷 Brezilya</option>
+                    <option value="MX">🇲🇽 Meksika</option>
+                    <option value="JP">🇯🇵 Japonya</option>
+                    <option value="KR">🇰🇷 Güney Kore</option>
+                    <option value="IN">🇮🇳 Hindistan</option>
+                </select>
+            </div>
+            
+            <p class="subtitle" id="main-subtitle">Tüm Platformlardan Türkiye Müzik Gündemi</p>
         </header>
 
         <!-- Platform Selector -->
@@ -80,7 +98,7 @@
         <section class="dashboard">
             <div class="column" id="col-top">
                 <div class="section-header">
-                    <h2 id="top-title">🔥 Top 10</h2>
+                    <h2 id="top-title">🔥 Top 20</h2>
                     <span class="status-indicator" id="top-status">Canlı Veri</span>
                 </div>
                 <div class="track-list" id="top-tracks-list">
