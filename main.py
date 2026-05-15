@@ -23,7 +23,8 @@ if not os.path.exists("frontend"):
     os.makedirs("frontend")
 
 # Serve static files — must be AFTER API routes, so we define it later
-yt = YTMusic()
+# We set location to 'TR' so that US-based cloud servers (like Render) can fetch Turkish charts correctly.
+yt = YTMusic(language="tr", location="TR")
 
 # ─────────────────── YouTube Music ───────────────────
 
