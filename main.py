@@ -35,12 +35,24 @@ async def yt_top_10():
         charts = yt.get_charts(country='TR')
         videos = charts.get('videos', [])
         
+        # In some ytmusicapi versions, videos is a dict with 'items'
+        if isinstance(videos, dict):
+            videos = videos.get('items', [])
+            
         tracks_raw = []
-        if videos and videos[0].get('playlistId'):
-            playlist = yt.get_playlist(videos[0]['playlistId'])
-            tracks_raw = playlist.get('tracks', [])
         
-        # Fallback to search if playlist method fails
+        # Check if the returned items are playlists (like "Trending 20 Turkey")
+        if videos and isinstance(videos, list) and videos[0].get('playlistId'):
+            try:
+                playlist = yt.get_playlist(videos[0]['playlistId'])
+                tracks_raw = playlist.get('tracks', [])
+            except Exception as e:
+                print("Playlist fetch error:", e)
+        # If they are already songs
+        elif videos and isinstance(videos, list) and videos[0].get('videoId'):
+            tracks_raw = videos
+        
+        # Fallback to search if everything fails
         if not tracks_raw:
             tracks_raw = yt.search("Türkiye trend şarkılar", filter="songs")
         
