@@ -3,6 +3,9 @@ let currentPlatform = 'youtube';
 let currentCountry = 'TR';
 let currentPlayingCard = null;
 let isPlaying = false;
+let ytProgressInterval = null;
+let currentTrackDuration = 0;
+let currentTrackTime = 0;
 
 const audioPlayer = document.getElementById('audio-player');
 const ytIframe = document.getElementById('yt-player');
@@ -144,7 +147,7 @@ function playTrack(track, card) {
         playAudio(track.previewUrl);
     } else if (track.videoId) {
         // YouTube embed (works for YouTube Music, Spotify proxy, and Apple Music)
-        playYouTube(track.videoId);
+        playYouTube(track.videoId, track.duration || 180);
     } else if (track.externalUrl) {
         // Last resort: open externally
         window.open(track.externalUrl, '_blank');
@@ -169,15 +172,28 @@ function playAudio(url) {
     };
 }
 
-function playYouTube(videoId) {
+function playYouTube(videoId, durationSec) {
     // Use YouTube IFrame API for embedded playback
     ytIframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&enablejsapi=1`;
     isPlaying = true;
     updatePlayPauseIcon();
 
-    // We can't track progress of iframe, but show it's playing
-    document.getElementById('player-progress').style.width = '100%';
-    document.getElementById('player-time').textContent = '▶ YT';
+    currentTrackDuration = durationSec;
+    currentTrackTime = 0;
+    
+    clearInterval(ytProgressInterval);
+    ytProgressInterval = setInterval(() => {
+        if (isPlaying && currentTrackTime < currentTrackDuration) {
+            currentTrackTime++;
+            const progress = (currentTrackTime / currentTrackDuration) * 100;
+            document.getElementById('player-progress').style.width = progress + '%';
+            document.getElementById('player-time').textContent = formatTime(currentTrackTime);
+        } else if (currentTrackTime >= currentTrackDuration) {
+            clearInterval(ytProgressInterval);
+            isPlaying = false;
+            updatePlayPauseIcon();
+        }
+    }, 1000);
 }
 
 function updatePlayPauseIcon() {
@@ -223,6 +239,7 @@ document.getElementById('player-close-btn').addEventListener('click', () => {
     audioPlayer.pause();
     audioPlayer.src = '';
     ytIframe.src = '';
+    clearInterval(ytProgressInterval);
     document.getElementById('player-bar').classList.remove('active');
     if (currentPlayingCard) currentPlayingCard.classList.remove('playing');
     currentPlayingCard = null;
@@ -232,10 +249,23 @@ document.getElementById('player-close-btn').addEventListener('click', () => {
 
 // Progress bar click to seek
 document.getElementById('player-progress-wrap').addEventListener('click', (e) => {
-    if (audioPlayer.src && audioPlayer.duration) {
-        const rect = e.currentTarget.getBoundingClientRect();
-        const ratio = (e.clientX - rect.left) / rect.width;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const ratio = (e.clientX - rect.left) / rect.width;
+
+    if (audioPlayer.src && audioPlayer.src !== window.location.href && audioPlayer.duration) {
         audioPlayer.currentTime = ratio * audioPlayer.duration;
+    } else if (ytIframe.src && ytIframe.src !== window.location.href && currentTrackDuration > 0) {
+        currentTrackTime = ratio * currentTrackDuration;
+        ytIframe.contentWindow.postMessage(JSON.stringify({
+            "event": "command",
+            "func": "seekTo",
+            "args": [currentTrackTime, true]
+        }), '*');
+        
+        // Update UI immediately
+        const progress = (currentTrackTime / currentTrackDuration) * 100;
+        document.getElementById('player-progress').style.width = progress + '%';
+        document.getElementById('player-time').textContent = formatTime(currentTrackTime);
     }
 });
 
