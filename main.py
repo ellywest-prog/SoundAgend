@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from ytmusicapi import YTMusic
 import uvicorn
 import os
@@ -41,17 +41,38 @@ COUNTRY_NAMES = {
     "IN": "Hindistan"
 }
 
+COUNTRY_NAMES_EN = {
+    "TR": "Turkey",
+    "US": "USA",
+    "GB": "UK",
+    "DE": "Germany",
+    "FR": "France",
+    "IT": "Italy",
+    "ES": "Spain",
+    "BR": "Brazil",
+    "MX": "Mexico",
+    "JP": "Japan",
+    "KR": "South Korea",
+    "IN": "India"
+}
+
 # ─────────────────── YouTube Music ───────────────────
 
 @app.get("/api/youtube/top")
-async def yt_top_20(country: str = "TR"):
+async def yt_top_20(country: str = "TR", limit: int = 20):
     try:
-        c_name = COUNTRY_NAMES.get(country.upper(), "Türkiye")
+        c_name_en = COUNTRY_NAMES_EN.get(country.upper(), "Turkey")
         # Instantiate localized YTMusic for this request to ensure no geo-blocks
         yt_local = YTMusic(language="tr", location=country.upper())
-        charts = yt_local.get_charts(country=country.upper())
-        videos = charts.get('videos', [])
         
+        videos = []
+        if limit <= 20:
+            try:
+                charts = yt_local.get_charts(country=country.upper())
+                videos = charts.get('videos', [])
+            except Exception as e:
+                print("YT get_charts error:", e)
+            
         # In some ytmusicapi versions, videos is a dict with 'items'
         if isinstance(videos, dict):
             videos = videos.get('items', [])
@@ -61,7 +82,7 @@ async def yt_top_20(country: str = "TR"):
         # Check if the returned items are playlists (like "Trending 20 Turkey")
         if videos and isinstance(videos, list) and videos[0].get('playlistId'):
             try:
-                playlist = yt_local.get_playlist(videos[0]['playlistId'])
+                playlist = yt_local.get_playlist(videos[0]['playlistId'], limit=limit)
                 tracks_raw = playlist.get('tracks', [])
             except Exception as e:
                 print("Playlist fetch error:", e)
@@ -71,10 +92,10 @@ async def yt_top_20(country: str = "TR"):
         
         # Fallback to search if everything fails
         if not tracks_raw:
-            tracks_raw = yt_local.search(f"{c_name} trend şarkılar", filter="songs")
+            tracks_raw = yt_local.search(f"Top 50 songs {c_name_en}", filter="songs", limit=limit)
         
         result = []
-        for t in tracks_raw[:20]:
+        for t in tracks_raw[:limit]:
             thumb = ''
             if t.get('thumbnails'):
                 thumb = t['thumbnails'][-1]['url']
@@ -95,14 +116,14 @@ async def yt_top_20(country: str = "TR"):
         return []
 
 @app.get("/api/youtube/new")
-async def yt_new_releases(country: str = "TR"):
+async def yt_new_releases(country: str = "TR", limit: int = 20):
     try:
-        c_name = COUNTRY_NAMES.get(country.upper(), "Türkiye")
+        c_name_en = COUNTRY_NAMES_EN.get(country.upper(), "Turkey")
         yt_local = YTMusic(language="tr", location=country.upper())
-        query = f"yeni çıkanlar 2026 {c_name}" if country.upper() == "TR" else f"new releases 2026 {c_name}"
-        new_releases = yt_local.search(query, filter="songs")
+        query = f"new release songs {c_name_en}"
+        new_releases = yt_local.search(query, filter="songs", limit=limit)
         result = []
-        for t in new_releases[:20]:
+        for t in new_releases[:limit]:
             thumb = ''
             if t.get('thumbnails'):
                 thumb = t['thumbnails'][-1]['url']
@@ -127,13 +148,13 @@ async def yt_new_releases(country: str = "TR"):
 # We search YTMusic for Spotify-popular Turkish songs.
 
 @app.get("/api/spotify/top")
-async def spotify_top_20(country: str = "TR"):
+async def spotify_top_20(country: str = "TR", limit: int = 20):
     try:
-        c_name = COUNTRY_NAMES.get(country.upper(), "Türkiye")
+        c_name_en = COUNTRY_NAMES_EN.get(country.upper(), "Turkey")
         yt_local = YTMusic(language="tr", location=country.upper())
-        results = yt_local.search(f"Spotify Top 50 {c_name}", filter="songs")
+        results = yt_local.search(f"Spotify Top 50 {c_name_en}", filter="songs", limit=limit)
         out = []
-        for t in results[:20]:
+        for t in results[:limit]:
             thumb = ''
             if t.get('thumbnails'):
                 thumb = t['thumbnails'][-1]['url']
@@ -154,14 +175,14 @@ async def spotify_top_20(country: str = "TR"):
         return []
 
 @app.get("/api/spotify/new")
-async def spotify_new(country: str = "TR"):
+async def spotify_new(country: str = "TR", limit: int = 20):
     try:
-        c_name = COUNTRY_NAMES.get(country.upper(), "Türkiye")
+        c_name_en = COUNTRY_NAMES_EN.get(country.upper(), "Turkey")
         yt_local = YTMusic(language="tr", location=country.upper())
-        query = f"Spotify yeni çıkanlar 2026 {c_name}" if country.upper() == "TR" else f"Spotify new releases 2026 {c_name}"
-        results = yt_local.search(query, filter="songs")
+        query = f"Spotify new releases {c_name_en}"
+        results = yt_local.search(query, filter="songs", limit=limit)
         out = []
-        for t in results[:20]:
+        for t in results[:limit]:
             thumb = ''
             if t.get('thumbnails'):
                 thumb = t['thumbnails'][-1]['url']
@@ -181,57 +202,7 @@ async def spotify_new(country: str = "TR"):
         print(f"Spotify New Error: {e}")
         return []
 
-# ─────────────────── Deezer ───────────────────
 
-@app.get("/api/deezer/top")
-async def deezer_top_20(country: str = "TR"):
-    try:
-        c_name = COUNTRY_NAMES.get(country.upper(), "Türkiye")
-        # For non-TR countries, search top tracks to simulate localized charts since /chart/0 is global
-        query = f"top {c_name}"
-        if country.upper() == "TR":
-            query = "top türkiye"
-        resp = requests.get(f"https://api.deezer.com/search?q={query}&limit=20", timeout=10)
-        data = resp.json().get('data', [])
-        result = []
-        for t in data:
-            result.append({
-                'title': t.get('title', ''),
-                'artist': t.get('artist', {}).get('name', ''),
-                'thumbnail': t.get('album', {}).get('cover_medium', ''),
-                'previewUrl': t.get('preview', ''),
-                'externalUrl': t.get('link', ''),
-                'duration': t.get('duration', 180),
-                'platform': 'deezer',
-            })
-        return result
-    except Exception as e:
-        print(f"Deezer Top Error: {e}")
-        return []
-
-@app.get("/api/deezer/new")
-async def deezer_new(country: str = "TR"):
-    try:
-        c_name = COUNTRY_NAMES.get(country.upper(), "Türkiye")
-        # Search Deezer for new songs in the target country
-        query = f"yeni pop {c_name}" if country.upper() == "TR" else f"new releases {c_name}"
-        resp = requests.get(f"https://api.deezer.com/search?q={query}&order=RATING_DESC&limit=20", timeout=10)
-        data = resp.json().get('data', [])
-        result = []
-        for t in data:
-            result.append({
-                'title': t.get('title', ''),
-                'artist': t.get('artist', {}).get('name', ''),
-                'thumbnail': t.get('album', {}).get('cover_medium', ''),
-                'previewUrl': t.get('preview', ''),
-                'externalUrl': t.get('link', ''),
-                'duration': t.get('duration', 180),
-                'platform': 'deezer',
-            })
-        return result
-    except Exception as e:
-        print(f"Deezer New Error: {e}")
-        return []
 
 # ─────────────────── Apple Music ───────────────────
 
@@ -247,13 +218,13 @@ def _find_yt_video_id(title, artist):
     return '', 180
 
 @app.get("/api/apple/top")
-async def apple_top_20(country: str = "TR"):
+async def apple_top_20(country: str = "TR", limit: int = 20):
     try:
         c_code = country.lower()
-        resp = requests.get(f"https://rss.applemarketingtools.com/api/v2/{c_code}/music/most-played/20/songs.json", timeout=10)
+        resp = requests.get(f"https://rss.applemarketingtools.com/api/v2/{c_code}/music/most-played/50/songs.json", timeout=10)
         data = resp.json().get('feed', {}).get('results', [])
         result = []
-        for t in data:
+        for t in data[:limit]:
             title = t.get('name', '')
             artist = t.get('artistName', '')
             video_id, duration = _find_yt_video_id(title, artist)
@@ -272,17 +243,16 @@ async def apple_top_20(country: str = "TR"):
         return []
 
 @app.get("/api/apple/new")
-async def apple_new(country: str = "TR"):
+async def apple_new(country: str = "TR", limit: int = 20):
     try:
-        c_code = country.lower()
-        c_name = COUNTRY_NAMES.get(country.upper(), "Türkiye")
+        c_name_en = COUNTRY_NAMES_EN.get(country.upper(), "Turkey")
         
         # Apple Music RSS feeds for new releases return 404 for Turkey and some others.
         # So we use YTMusic as a proxy to search for new releases.
         yt_local = YTMusic(language="tr", location=country.upper())
-        results = yt_local.search(f"Apple Music yeni çıkanlar 2026 {c_name}", filter="songs")
+        results = yt_local.search(f"Apple Music new releases {c_name_en}", filter="songs", limit=limit)
         out = []
-        for t in results[:20]:
+        for t in results[:limit]:
             thumb = ''
             if t.get('thumbnails'):
                 thumb = t['thumbnails'][-1]['url']
@@ -302,6 +272,7 @@ async def apple_new(country: str = "TR"):
     except Exception as e:
         print(f"Apple New Error: {e}")
         return []
+
 
 # ─────────────────── Static Files & Index ───────────────────
 
